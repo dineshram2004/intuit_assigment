@@ -1,0 +1,77 @@
+experiment:
+  task: "classification" # POSSIBILITIES: [classification, regression]
+  
+data_split:
+  method: "time_based"   # POSSIBILITIES: [random, stratified, time_based, group_based]
+  target_col: "target"
+  split_var: "date_col"  # REQUIRED IF: method is time_based (date column) or group_based (e.g., account_id)
+  test_size: 0.15        # Range: (0.0, 1.0)
+  val_size: 0.15         # Range: (0.0, 1.0)
+
+feature_engineering:     # NOTE: Multi-row aggregations require custom preprocessing outside standard scikit-learn row-wise transformers
+  entity_key: "account_id"
+  timestamp_col: "date_col"
+  aggregations:
+    - window: "1h"       # POSSIBILITIES: [15m, 1h, 24h, 7d, 30d, 90d]
+      metrics: ["count", "sum", "mean", "min", "max", "std"]
+      columns: ["transaction_amount"]
+
+preprocessing:
+  default_imputation:
+    numeric: "median"        # POSSIBILITIES: [mean, median, most_frequent, constant]
+    categorical: "most_frequent" # POSSIBILITIES: [most_frequent, constant]
+    text: ""
+
+  column_groups:
+    - group_name: "text_tfidf_features"
+      columns: ["product_title", "review_body"]
+      imputer: "constant"    # POSSIBILITIES: [constant]
+      impute_value: ""
+      transformer: "tfidf"   # POSSIBILITIES: [tfidf]
+      params:
+        max_features: 5000   # Range: Int
+        ngram_range: [1, 2]  # Tuple: [min_n, max_n]
+        stop_words: "english" # POSSIBILITIES: ["english", null]
+        sublinear_tf: true   # POSSIBILITIES: [true, false]
+
+    - group_name: "standard_numeric_features"
+      columns: ["age", "account_age_days"]
+      imputer: "median"      # POSSIBILITIES: [mean, median, constant]
+      transformer: "standard_scaler" # POSSIBILITIES: [standard_scaler, minmax_scaler, robust_scaler]
+
+    - group_name: "robust_numeric_features"
+      columns: ["annual_income", "transaction_amount"]
+      imputer: "median"
+      transformer: "robust_scaler"
+
+    - group_name: "categorical_features"
+      columns: ["country", "subscription_tier"]
+      imputer: "most_frequent"
+      transformer: "onehot"  # POSSIBILITIES: [onehot, ordinal]
+      params:
+        drop: "first"        # POSSIBILITIES: ["first", "if_binary", null]
+
+model:
+  algorithm: "lightgbm"      # POSSIBILITIES (Classification): [lightgbm, random_forest, log_reg]
+                             # POSSIBILITIES (Regression):     [lightgbm_reg, random_forest_reg, ridge]
+  params:
+    n_estimators: 200        # Range: Int
+    learning_rate: 0.05      # Range: Float (Tree algorithms only)
+    max_depth: 6             # Range: Int
+    num_leaves: 31           # LightGBM specific
+
+evaluation:
+  optimize_metric: "f1"      # POSSIBILITIES (Classification): [f1, roc_auc, precision, recall, accuracy]
+                             # POSSIBILITIES (Regression):     [rmse, mae, r2, mape]
+  track_metrics: 
+    - "precision"
+    - "recall"
+    - "roc_auc"
+  artifacts:
+    plots:                   # POSSIBILITIES: [roc_curve, precision_recall_curve, confusion_matrix, feature_importance, residuals_plot]
+      - "roc_curve"
+      - "precision_recall_curve"
+      - "confusion_matrix"
+      - "feature_importance"
+    save_model_path: "./outputs/model_pipeline.pkl"
+    save_predictions_path: "./outputs/inference_results.csv"

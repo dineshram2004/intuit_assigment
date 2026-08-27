@@ -1,0 +1,81 @@
+experiment:
+  task: "classification" # Options: classification, regression
+
+data_split:
+  method: "time_based"   # Options: random, stratified, time_based, group_based
+  target_col: "target"
+  split_var: "date_col"  # Required if method is time_based or group_based
+  test_size: 0.15        # Fraction of the full dataset
+  val_size: 0.15         # Fraction of the full dataset
+
+preprocessing:
+  # Used when a column group omits `imputer`
+  default_imputation:
+    numeric: "median"
+    categorical: "most_frequent"
+    text: ""
+
+  column_groups:
+    # One text column per TF-IDF group (multi-column groups are auto-expanded)
+    - group_name: "title_tfidf"
+      columns: ["product_title"]
+      imputer: "constant"
+      impute_value: ""
+      transformer: "tfidf"
+      params:
+        max_features: 5000
+        ngram_range: [1, 2]
+        stop_words: "english"
+        sublinear_tf: true
+
+    - group_name: "review_tfidf"
+      columns: ["review_body"]
+      imputer: "constant"
+      impute_value: ""
+      transformer: "tfidf"
+      params:
+        max_features: 5000
+        ngram_range: [1, 2]
+        stop_words: "english"
+        sublinear_tf: true
+
+    - group_name: "standard_numeric_features"
+      columns: ["age", "account_age_days"]
+      imputer: "median"
+      transformer: "standard_scaler"
+
+    - group_name: "robust_numeric_features"
+      columns: ["annual_income", "transaction_amount"]
+      imputer: "median"
+      transformer: "robust_scaler"
+
+    - group_name: "categorical_features"
+      columns: ["country", "subscription_tier"]
+      imputer: "most_frequent"
+      transformer: "onehot"
+      params:
+        drop: "first"
+
+model:
+  algorithm: "lightgbm"  # Classification: random_forest, lightgbm, log_reg
+                         # Regression: random_forest_reg, lightgbm_reg, ridge
+  params:
+    n_estimators: 200
+    learning_rate: 0.05
+    max_depth: 6
+    num_leaves: 31
+
+evaluation:
+  optimize_metric: "f1"  # Primary metric to report (not used for tuning)
+  track_metrics:
+    - "precision"
+    - "recall"
+    - "roc_auc"
+  artifacts:
+    plots:
+      - "roc_curve"
+      - "precision_recall_curve"
+      - "confusion_matrix"
+      - "feature_importance"
+    save_model_path: "./outputs/model_pipeline.pkl"
+    save_predictions_path: "./outputs/inference_results.csv"

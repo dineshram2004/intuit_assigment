@@ -1,0 +1,44 @@
+experiment:
+  task: "classification"
+
+data_split:
+  method: "random"
+  target_col: "target"
+  test_size: 0.2
+  val_size: 0.2
+
+preprocessing:
+  default_imputation:
+    numeric: "median"
+    categorical: "most_frequent"
+    text: ""
+
+  column_groups:
+    - group_name: "numeric_features"
+      columns:
+        - "sepal length (cm)"
+        - "sepal width (cm)"
+        - "petal length (cm)"
+        - "petal width (cm)"
+      imputer: "median"
+      transformer: "standard_scaler"
+
+model:
+  algorithm: "random_forest"
+  params:
+    n_estimators: 100
+    random_state: 42
+
+evaluation:
+  optimize_metric: "accuracy"
+  track_metrics:
+    - "precision"
+    - "recall"
+    - "f1"
+    - "accuracy"
+  artifacts:
+    plots:
+      - "confusion_matrix"
+      - "feature_importance"
+    save_model_path: "./outputs/iris_model.pkl"
+    save_predictions_path: "./outputs/iris_predictions.csv"
