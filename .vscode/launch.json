@@ -1,0 +1,67 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run: sample-2 pipeline",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "--config",
+        "configs/sample-2.yaml",
+        "--data",
+        "data/sample-2.csv",
+        "--evaluate-on",
+        "test"
+      ],
+      "env": {
+        "MPLCONFIGDIR": "${workspaceFolder}/.matplotlib"
+      },
+      "justMyCode": true
+    },
+    {
+      "name": "Run: iris pipeline",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "--config",
+        "configs/iris_config.yaml",
+        "--data",
+        "data/iris.csv",
+        "--evaluate-on",
+        "test"
+      ],
+      "env": {
+        "MPLCONFIGDIR": "${workspaceFolder}/.matplotlib"
+      },
+      "justMyCode": true
+    },
+    {
+      "name": "Generate sample-2 data",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/generate_sample2_data.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Download iris data",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/download_iris.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    }
+  ]
+}
